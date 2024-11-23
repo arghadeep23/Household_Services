@@ -1,6 +1,9 @@
 <template>
   <div class="container mt-5">
     <h1 class="mb-4">Services</h1>
+    <button class="btn btn-success mb-4" @click="openCreateServiceModal">
+      Create New Service
+    </button>
     <table class="table table-striped">
       <thead>
         <tr>
@@ -95,14 +98,16 @@
       @close="selectedProfessional = null" />
     <ServiceDetailsModal v-if="selectedService" :service="selectedService" @close="selectedService = null"
       @save="saveServiceDetails" />
+    <CreateServiceModal v-if="showCreateServiceModal" @close="showCreateServiceModal = false" @save="saveNewService" />
   </div>
 </template>
 <script>
 import ServiceDetailsModal from "@/components/ServiceDetailsModal.vue";
 import ProfessionalDetailsModal from "@/components/ProfessionalDetailsModal.vue";
+import CreateServiceModal from "@/components/CreateServiceModal.vue";
 export default {
   name: "AdminHome",
-  components: { ServiceDetailsModal, ProfessionalDetailsModal },
+  components: { ServiceDetailsModal, ProfessionalDetailsModal, CreateServiceModal },
   data() {
     return {
       services: [
@@ -154,6 +159,7 @@ export default {
         },
       ],
       selectedProfessional: null,
+      showCreateServiceModal: false,
     };
   },
   methods: {
@@ -192,6 +198,14 @@ export default {
         this.professionals = this.professionals.filter((professional) => professional.id !== id);
         alert("Professional has been deleted.");
       }
+    },
+    openCreateServiceModal() {
+      this.showCreateServiceModal = true;
+    },
+    saveNewService(service) {
+      const newService = { ...service, id: this.services.length + 1 };
+      this.services.push(newService);
+      this.showCreateServiceModal = false; // Close the modal
     },
   },
 };
