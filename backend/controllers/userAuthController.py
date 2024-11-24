@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -31,7 +31,7 @@ def generate_token(user: User):
         "id": user.id,
         "email": user.email,
         "full_name": user.full_name,
-        "exp": datetime.now(datetime.timezone.utc) + timedelta(hours=24)
+        "exp":  datetime.now(timezone.utc) + timedelta(hours=24)
     }
     token = jwt.encode(payload, JWT_SECRET_KEY, algorithm="HS256")
     return token

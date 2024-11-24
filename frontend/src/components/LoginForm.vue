@@ -21,6 +21,14 @@
       <button type="submit" class="btn btn-primary mt-3">Login</button>
     </form>
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <div class="options">
+      <button @click="$router.push('/signup-professional')" class="btn btn-secondary">
+        Register as Professional
+      </button>
+      <button @click="$router.push('/signup-customer')" class="btn btn-secondary">
+        Register as Customer
+      </button>
+    </div>
   </div>
 </template>
 
@@ -85,5 +93,13 @@ export default {
 <style scoped>
 .error-message {
   color: red;
+}
+
+.options {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: space-between;
 }
 </style>

@@ -24,11 +24,13 @@
             </div>
             <button type="submit" class="btn btn-primary">Register</button>
         </form>
-        <button @click="$router.push('/login')" class="btn btn-secondary">Already Registered? Proceed to Login</button>
+        <button @click="$router.push('/login')" class="btn btn-secondary options">Already Registered? Proceed to
+            Login</button>
     </div>
 </template>
 
 <script>
+import { getApiUrl } from '../utils/api';
 export default {
     name: "SignupCustomerForm",
     data() {
@@ -41,20 +43,61 @@ export default {
         };
     },
     methods: {
-        handleRegister() {
-            const userData = {
+        async handleRegister() {
+            // const userData = {
+            //     email: this.email,
+            //     password: this.password,
+            //     name: this.name,
+            //     address: this.address,
+            //     pincode: this.pincode
+            // };
+            // console.log('User Data:', userData);
+            // this.$router.push('/login');
+            // Add your registration logic here
+            console.log({
                 email: this.email,
                 password: this.password,
-                name: this.name,
+                full_name: this.name,
                 address: this.address,
                 pincode: this.pincode
-            };
-            console.log('User Data:', userData);
-            this.$router.push('/login');
-            // Add your registration logic here
+
+            })
+            try {
+                const response = await fetch(`${getApiUrl()}/api/customer/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: this.email,
+                        password: this.password,
+                        full_name: this.name,
+                        address: this.address,
+                        pincode: this.pincode
+                    })
+                });
+                if (response.ok) {
+                    console.log('Registration successful');
+                    const data = await response.json();
+                    // set token in local storage
+                    localStorage.setItem('customer', data.token);
+                    this.$router.push(`/customer/${data.id}`); // Redirect to customer home
+                } else {
+                    console.log('Registration failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
         }
     }
 };
+
 </script>
 
 <style src="../styles/SignupForm.css"></style>
+
+<style scoped>
+.options {
+    margin-top: 10px;
+}
+</style>

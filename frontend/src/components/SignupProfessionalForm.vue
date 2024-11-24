@@ -42,7 +42,8 @@
       </div>
       <button type="submit" class="btn btn-primary">Register</button>
     </form>
-    <button @click="$router.push('/login')" class="btn btn-secondary">Already Registered ? Proceed to Login</button>
+    <button @click="$router.push('/login')" class="btn btn-secondary options">Already Registered ? Proceed to
+      Login</button>
   </div>
 </template>
 
@@ -96,3 +97,9 @@ export default {
 </script>
 
 <style src="../styles/SignupForm.css"></style>
+
+<style scoped>
+.options {
+  margin-top: 1rem;
+}
+</style>

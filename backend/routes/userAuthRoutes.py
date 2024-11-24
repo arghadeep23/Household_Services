@@ -15,7 +15,7 @@ def signup():
     user = create_user(session, data['email'], data['password'], data['full_name'], data['address'], data['pincode'])
     if user:
         token = generate_token(user)
-        return jsonify({"token": token}), 201
+        return jsonify({"token": token, "id":user.id, "email" : user.email, "full_name":user.full_name}), 201
     return jsonify({"error": "User already exists"}), 409
 
 @auth_bp.route('/customer/login', methods=['POST'])
