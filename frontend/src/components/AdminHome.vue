@@ -18,8 +18,8 @@
           <td>
             <a href="#" @click.prevent="viewServiceDetails(service)">{{ service.id }}</a>
           </td>
-          <td>{{ service.name }}</td>
-          <td>{{ service.basePrice }}</td>
+          <td>{{ service.service_name }}</td>
+          <td>{{ service.base_price }}</td>
           <td>
             <button class="btn btn-primary btn-sm" @click="editService(service)">
               Edit
@@ -46,9 +46,9 @@
               {{ professional.id }}
             </a>
           </td>
-          <td>{{ professional.name }}</td>
+          <td>{{ professional.full_name }}</td>
           <td>{{ professional.experience }}</td>
-          <td>{{ professional.serviceName }}</td>
+          <td>{{ professional.service }}</td>
           <td>
             <div class="btn-group" role="group">
               <button class="btn btn-success btn-sm custom-btn" @click="approveProfessional(professional)">
@@ -78,8 +78,8 @@
       <tbody>
         <tr v-for="request in serviceRequests" :key="request.id">
           <td>{{ request.id }}</td>
-          <td>{{ request.professional || 'Not Assigned' }}</td>
-          <td>{{ request.requestedDate }}</td>
+          <td>{{ request.professional_id || 'Not Assigned' }}</td>
+          <td>{{ request.created_at }}</td>
           <td>
             <span :class="{
               'badge bg-primary': request.status === 'Requested',
@@ -105,66 +105,65 @@
 import ServiceDetailsModal from "@/components/ServiceDetailsModal.vue";
 import ProfessionalDetailsModal from "@/components/ProfessionalDetailsModal.vue";
 import CreateServiceModal from "@/components/CreateServiceModal.vue";
+import { getApiUrl } from "@/utils/api";
+
 export default {
   name: "AdminHome",
   components: { ServiceDetailsModal, ProfessionalDetailsModal, CreateServiceModal },
   data() {
     return {
-      services: [
-        { id: 1, name: "Plumbing", basePrice: 100 },
-        { id: 2, name: "Gardening", basePrice: 200 },
-        { id: 3, name: "Electrician", basePrice: 150 },
-      ],
+      services: [],
       selectedService: null,
-      professionals: [
-        {
-          id: 1,
-          name: "John Doe",
-          experience: 5,
-          serviceName: "Plumbing",
-          email: "john.doe@example.com",
-          address: "123 Main St, Springfield",
-          pincode: "123456",
-          document: "resume-john.pdf",
-        },
-        {
-          id: 2,
-          name: "Jane Smith",
-          experience: 3,
-          serviceName: "Gardening",
-          email: "jane.smith@example.com",
-          address: "456 Oak Lane, Gotham",
-          pincode: "654321",
-          document: "resume-jane.pdf",
-        },
-      ],
-      serviceRequests: [
-        {
-          id: 101,
-          professional: "John Doe",
-          requestedDate: "2024-11-01",
-          status: "Requested",
-        },
-        {
-          id: 102,
-          professional: null,
-          requestedDate: "2024-11-05",
-          status: "Accepted",
-        },
-        {
-          id: 103,
-          professional: "Jane Smith",
-          requestedDate: "2024-11-10",
-          status: "Closed",
-        },
-      ],
+      professionals: [],
+      serviceRequests: [],
       selectedProfessional: null,
       showCreateServiceModal: false,
     };
   },
+  created() {
+    this.fetchServices();
+    this.fetchProfessionals();
+    this.fetchServiceRequests();
+  },
   methods: {
+    async fetchServices() {
+      try {
+        const response = await fetch(`${getApiUrl()}/api/services`);
+        if (response.ok) {
+          this.services = await response.json();
+        } else {
+          console.error('Failed to fetch services');
+        }
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    },
+    async fetchProfessionals() {
+      try {
+        const response = await fetch(`${getApiUrl()}/api/professionals`);
+        if (response.ok) {
+          this.professionals = await response.json();
+        } else {
+          console.error('Failed to fetch professionals');
+        }
+      } catch (error) {
+        console.error('Error fetching professionals:', error);
+      }
+    },
+    async fetchServiceRequests() {
+      try {
+        const response = await fetch(`${getApiUrl()}/api/service_requests`);
+        if (response.ok) {
+          this.serviceRequests = await response.json();
+        } else {
+          console.error('Failed to fetch service requests');
+        }
+      } catch (error) {
+        console.error('Error fetching service requests:', error);
+      }
+    },
     viewServiceDetails(service) {
-      this.selectedService = { ...service, description: "", subservices: [] };
+      this.selectedService = { ...service };
     },
     editService(service) {
       this.viewServiceDetails(service); // Reuse the same logic for now
@@ -202,11 +201,32 @@ export default {
     openCreateServiceModal() {
       this.showCreateServiceModal = true;
     },
-    saveNewService(service) {
-      const newService = { ...service, id: this.services.length + 1 };
-      this.services.push(newService);
-      this.showCreateServiceModal = false; // Close the modal
-    },
+    async saveNewService(service) {
+      console.log("Received service data in parent component:", service);
+      try {
+        const response = await fetch(`${getApiUrl()}/api/services`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            service_name: service.name,
+            description: service.description,
+            base_price: service.basePrice,
+            subservices: service.subservices
+          })
+        });
+        if (response.ok) {
+          console.log('Service created successfully');
+          // Add any additional logic here, like updating the list of services
+        } else {
+          console.log('Failed to create service');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+      this.showCreateServiceModal = false; // Close modal after save attempt
+    }
   },
 };
 </script>

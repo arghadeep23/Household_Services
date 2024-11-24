@@ -10,7 +10,8 @@
                     <form>
                         <div class="mb-3">
                             <label for="serviceName" class="form-label">Service Name</label>
-                            <input type="text" class="form-control" id="serviceName" v-model="editableService.name" />
+                            <input type="text" class="form-control" id="serviceName"
+                                v-model="editableService.service_name" />
                         </div>
                         <div class="mb-3">
                             <label for="serviceDescription" class="form-label">Service Description</label>
@@ -20,7 +21,7 @@
                         <div class="mb-3">
                             <label for="servicePrice" class="form-label">Base Price</label>
                             <input type="number" class="form-control" id="servicePrice"
-                                v-model="editableService.basePrice" />
+                                v-model="editableService.base_price" />
                         </div>
 
                         <h5>Subservices</h5>
@@ -35,7 +36,7 @@
                             <tbody>
                                 <tr v-for="(subservice, index) in editableService.subservices" :key="index">
                                     <td><input type="text" class="form-control" v-model="subservice.name" /></td>
-                                    <td><input type="number" class="form-control" v-model="subservice.price" /></td>
+                                    <td><input type="number" class="form-control" v-model="subservice.basePrice" /></td>
                                     <td>
                                         <button class="btn btn-danger btn-sm" @click.prevent="removeSubservice(index)">
                                             Remove
@@ -68,7 +69,7 @@ export default {
     props: ["service"],
     data() {
         return {
-            editableService: { ...this.service, subservices: [...(this.service.subservices || [])] },
+            editableService: this.service,
         };
     },
     methods: {

@@ -15,6 +15,8 @@ from routes.professionalRoutes import professional_bp
 from routes.userAuthRoutes import auth_bp
 from routes.professionalAuthRoutes import professional_auth_bp
 from routes.ssoRoutes import sso_bp
+from routes.serviceRoutes import service_bp
+from routes.serviceRequestRoutes import service_request_bp
 
 app = Flask(__name__)
 
@@ -50,6 +52,8 @@ app.register_blueprint(professional_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(professional_auth_bp, url_prefix='/api')
 app.register_blueprint(sso_bp, url_prefix='/api')
+app.register_blueprint(service_bp, url_prefix='/api')
+app.register_blueprint(service_request_bp, url_prefix='/api')
 
 if __name__ == '__main__':
     app.run(debug=True)

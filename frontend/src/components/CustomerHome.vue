@@ -13,7 +13,7 @@
             <div v-for="service in services" :key="service.id" class="col-md-4">
                 <div class="card service-card">
                     <div class="card-body">
-                        <h5 class="card-title">{{ service.name }}</h5>
+                        <h5 class="card-title">{{ service.service_name }}</h5>
                         <p class="card-text">{{ service.description }}</p>
                         <button class="btn btn-outline-primary" @click="viewServiceDetails(service)">
                             View Details
@@ -28,12 +28,12 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">{{ selectedService?.name }}</h5>
+                        <h5 class="modal-title">{{ selectedService?.service_name }}</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <p><strong>Description:</strong> {{ selectedService?.description }}</p>
-                        <p><strong>Base Price:</strong> ₹{{ selectedService?.basePrice }}</p>
+                        <p><strong>Base Price:</strong> ₹{{ selectedService?.base_price }}</p>
                         <h6>Subservices</h6>
                         <table class="table table-striped">
                             <thead>
@@ -46,7 +46,7 @@
                             <tbody>
                                 <tr v-for="subservice in selectedService?.subservices || []" :key="subservice.id">
                                     <td>{{ subservice.name }}</td>
-                                    <td>₹{{ subservice.price }}</td>
+                                    <td>₹{{ subservice.basePrice }}</td>
                                     <td>
                                         <input type="checkbox" :value="subservice" v-model="selectedSubservices" />
                                     </td>
@@ -81,7 +81,7 @@
             <tbody>
                 <tr v-for="service in serviceHistory" :key="service.id">
                     <td>{{ service.id }}</td>
-                    <td>{{ service.name }}</td>
+                    <td>{{ service.service_name }}</td>
                     <td>{{ service.professionalName }}</td>
                     <td>{{ service.phone }}</td>
                     <td>
@@ -134,18 +134,96 @@
 <script>
 import { Modal } from 'bootstrap';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import { getApiUrl } from '@/utils/api';
+
 export default {
     name: 'CustomerHome',
-    customerId: 1,
     data() {
         return {
-            services: [{ id: 1, name: "Plumbing", description: "Fixing leaks and pipes.", basePrice: 500, subservices: [{ id: 101, name: "Leak Repair", price: 300 }, { id: 102, name: "Pipe Replacement", price: 800 },], }, { id: 2, name: "Electrical", description: "Electrical installations and repairs.", basePrice: 700, subservices: [{ id: 201, name: "Wiring", price: 500 }, { id: 202, name: "Lighting Installation", price: 1000 },], }, { id: 3, name: "Gardening", description: "Lawn and garden maintenance.", basePrice: 400, subservices: [{ id: 301, name: "Lawn Mowing", price: 200 }, { id: 302, name: "Hedge Trimming", price: 300 },], }, { id: 4, name: "Painting", description: "House and office painting services.", basePrice: 1200, subservices: [{ id: 401, name: "Interior Painting", price: 1500 }, { id: 402, name: "Exterior Painting", price: 2000 },], }, { id: 5, name: "Cleaning", description: "Residential and commercial cleaning services.", basePrice: 600, subservices: [{ id: 501, name: "Deep Cleaning", price: 800 }, { id: 502, name: "Carpet Cleaning", price: 600 },], },], selectedService: null, selectedSubservices: [], serviceHistory: [{ id: 201, name: "Cleaning", professionalName: "John Smith", phone: "9876543210", status: "Assigned", description: "Kitchen Cleaning", creationDate: "2024-11-15", professionalId: "P101", }, { id: 202, name: "Electrical", professionalName: "Jane Doe", phone: "1234567890", status: "Completed", description: "Wiring Installation", creationDate: "2024-10-25", professionalId: "P102", }, { id: 203, name: "Plumbing", professionalName: "Robert Brown", phone: "1122334455", status: "Pending", description: "Pipe Replacement", creationDate: "2024-11-18", professionalId: "P103", }, { id: 204, name: "Gardening", professionalName: "Emily Green", phone: "5566778899", status: "In Progress", description: "Lawn Mowing", creationDate: "2024-11-20", professionalId: "P104", }, { id: 205, name: "Painting", professionalName: "Michael White", phone: "6677889900", status: "Completed", description: "Interior Painting", creationDate: "2024-11-22", professionalId: "P105", },],
+            services: [],
+            selectedService: null,
+            selectedSubservices: [],
+            serviceHistory: [],
             closingService: null,
             rating: 0,
-            remarks: "",
+            remarks: '',
+            customerId: this.$route.params.id
         };
     },
-    methods: { goToProfile() { this.$router.push(`/customer/${this.$route.params.id}/profile`); }, viewServiceDetails(service) { this.selectedService = service; const modal = new Modal(document.getElementById("serviceDetailsModal")); modal.show(); }, proceedWithServices() { console.log("Selected subservices:", this.selectedSubservices); }, closeService(service) { this.closingService = service; const modal = new Modal(document.getElementById("closeServiceModal")); modal.show(); }, submitRating() { console.log("Rating submitted:", { rating: this.rating, remarks: this.remarks, service: this.closingService, }); }, },
+    created() {
+        this.fetchOpenServices();
+        this.fetchServiceRequests();
+    },
+    methods: {
+        async fetchOpenServices() {
+            try {
+                const response = await fetch(`${getApiUrl()}/api/services/open`);
+                if (response.ok) {
+                    this.services = await response.json();
+                } else {
+                    console.error('Failed to fetch open services');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        },
+        async fetchServiceRequests() {
+            const customerId = this.$route.params.id;
+            try {
+                const response = await fetch(`${getApiUrl()}/api/service_requests/customer/${customerId}`);
+                if (response.ok) {
+                    this.serviceHistory = await response.json();
+                } else {
+                    console.error('Failed to fetch service requests');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        },
+        goToProfile() {
+            this.$router.push(`/customer/${this.$route.params.id}/profile`);
+        },
+        viewServiceDetails(service) {
+            this.selectedService = service;
+            const modal = new Modal(document.getElementById('serviceDetailsModal'));
+            modal.show();
+        },
+        proceedWithServices() {
+            console.log('Selected subservices:', this.selectedSubservices);
+            console.log('Selected service:', this.selectedService);
+            // creating a new service request
+            const customerId = this.$route.params.id;
+            const response = fetch(`${getApiUrl()}/api/service_requests`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: customerId,
+                    service_id: this.selectedService.id,
+                    selected_subservices: this.selectedSubservices,
+                }),
+            });
+            if (response.ok) {
+                console.log('Service request created successfully');
+                this.fetchServiceRequests();
+            } else {
+                console.error('Failed to create service request');
+            }
+        },
+        closeService(service) {
+            this.closingService = service;
+            const modal = new Modal(document.getElementById('closeServiceModal'));
+            modal.show();
+        },
+        submitRating() {
+            console.log('Rating submitted:', {
+                rating: this.rating,
+                remarks: this.remarks,
+                service: this.closingService,
+            });
+        },
+    },
 };
 </script>
 <style scoped>

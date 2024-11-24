@@ -61,7 +61,7 @@ const routes = [
                 path: 'logout',
                 name: 'Logout',
                 beforeEnter: (to, from, next) => {
-                    localStorage.removeItem('token');
+                    localStorage.removeItem('admin');
                     next('/login');
                 }
             }
@@ -91,7 +91,7 @@ const routes = [
                 path: 'logout',
                 name: 'Logout',
                 beforeEnter: (to, from, next) => {
-                    localStorage.removeItem('token');
+                    localStorage.removeItem('professional');
                     next('/login');
                 }
             },
@@ -127,7 +127,7 @@ const routes = [
                 path: 'logout',
                 name: 'Logout',
                 beforeEnter: (to, from, next) => {
-                    localStorage.removeItem('token');
+                    localStorage.removeItem('customer');
                     next('/login');
                 }
             },
