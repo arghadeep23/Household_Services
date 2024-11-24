@@ -1,8 +1,10 @@
 from models.Admin import Admin
 from sqlalchemy.orm import Session
+from werkzeug.security import generate_password_hash
 
 def create_admin(session: Session, email: str, password: str, full_name: str):
-    new_admin = Admin(email=email, password=password, full_name=full_name)
+    hashed_password = generate_password_hash(password)
+    new_admin = Admin(email=email, password=hashed_password, full_name=full_name)
     session.add(new_admin)
     session.commit()
     return new_admin
@@ -17,7 +19,7 @@ def update_admin(session: Session, admin_id: int, email: str, password: str, ful
     admin = get_admin_by_id(session, admin_id)
     if admin:
         admin.email = email
-        admin.password = password
+        admin.password = generate_password_hash(password)
         admin.full_name = full_name
         session.commit()
     return admin

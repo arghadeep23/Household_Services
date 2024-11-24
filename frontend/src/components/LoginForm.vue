@@ -1,62 +1,89 @@
 <template>
   <div class="login-form">
     <h2>Login</h2>
-    <form @submit.prevent="handleLogin">
+    <form @submit.prevent="login">
       <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" v-model="email" placeholder="Enter your email" />
+        <label for="email">Email:</label>
+        <input type="email" v-model="email" id="email" class="form-control" required />
       </div>
       <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" v-model="password" placeholder="Enter your password" />
+        <label for="password">Password:</label>
+        <input type="password" v-model="password" id="password" class="form-control" required />
       </div>
       <div class="form-group">
-        <label for="role">Role</label>
-        <select id="role" v-model="role" class="form-control">
-          <option value="customer">Customer</option>
-          <option value="service_professional">Service Professional</option>
-          <option value="admin">Admin</option>
+        <label for="role">Role:</label>
+        <select v-model="role" id="role" class="form-control" required>
+          <option value="Customer">Customer</option>
+          <option value="Professional">Professional</option>
+          <option value="Admin">Admin</option>
         </select>
       </div>
-      <button type="submit" class="btn btn-primary">Login</button>
-      <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
+      <button type="submit" class="btn btn-primary mt-3">Login</button>
     </form>
-    <div class="options">
-      <button @click="$router.push('/signup-professional')" class="btn btn-secondary">
-        Register as Professional
-      </button>
-      <button @click="$router.push('/signup-customer')" class="btn btn-secondary">
-        Register as Customer
-      </button>
-    </div>
+    <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
   </div>
 </template>
 
 <script>
+import { getApiUrl } from '../utils/api';
+
 export default {
-  name: "LoginForm",
   data() {
     return {
       email: '',
       password: '',
-      role: 'customer',
-      error: null
+      role: 'Customer',
+      errorMessage: ''
     };
   },
   methods: {
-    handleLogin() {
-      // Placeholder for login logic
-      console.log({
-        email: this.email,
-        password: this.password,
-        role: this.role
-      });
+    async login() {
+      try {
+        const response = await fetch(`${getApiUrl()}/api/sso/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: this.email,
+            password: this.password,
+            role: this.role
+          })
+        });
 
-      // Simulate login failure
-      this.error = "Invalid login credentials. Please try again.";
+        if (!response.ok) {
+          const errorData = await response.json();
+          this.errorMessage = errorData.error;
+          return;
+        }
+
+        const data = await response.json();
+        const id = data.entity.id;
+        if (this.role === 'Customer') {
+          localStorage.setItem('customer', JSON.stringify(data.token));
+        } else if (this.role === 'Professional') {
+          localStorage.setItem('professional', JSON.stringify(data.token));
+        } else if (this.role === 'Admin') {
+          localStorage.setItem('admin', JSON.stringify(data.token));
+        }
+        // Navigate to the appropriate page based on the role
+        if (this.role === 'Customer') {
+          this.$router.push(`/customer/${id}`);
+        } else if (this.role === 'Professional') {
+          this.$router.push(`/professional/${id}`);
+        } else if (this.role === 'Admin') {
+          this.$router.push('/admin');
+        }
+      } catch (error) {
+        this.errorMessage = 'An error occurred while logging in. Please try again.';
+      }
     }
   }
 };
 </script>
 
-<style src="../styles/LoginForm.css"></style>
+<style scoped>
+.error-message {
+  color: red;
+}
+</style>

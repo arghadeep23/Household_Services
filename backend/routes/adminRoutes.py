@@ -34,3 +34,13 @@ def update_admin_endpoint(admin_id):
     if admin:
         return jsonify({'id': admin.id, 'email': admin.email, 'full_name': admin.full_name, 'created_at': admin.created_at})
     return jsonify({'error': 'Admin not found'}), 404
+
+# Delete the admin account
+@admin_bp.route('/admins/<int:admin_id>', methods=['DELETE'])
+def delete_admin_endpoint(admin_id):
+    admin = get_admin_by_id(session, admin_id)
+    if admin:
+        session.delete(admin)
+        session.commit()
+        return jsonify({'message': 'Admin deleted successfully'})
+    return jsonify({'error': 'Admin not found'}), 404
