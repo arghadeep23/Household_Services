@@ -20,7 +20,11 @@ app = Flask(__name__)
 
 # Enable CORS for all origins, headers, and methods
 # Enable CORS for all origins, headers, and methods
+# CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}})
+CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}})
+
 
 # Handle preflight requests explicitly
 @app.after_request

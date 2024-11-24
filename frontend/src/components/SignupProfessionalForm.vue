@@ -48,6 +48,7 @@
 </template>
 
 <script>
+import { getApiUrl } from '../utils/api';
 export default {
   name: "SignupProfessionalForm",
   data() {
@@ -59,6 +60,7 @@ export default {
       experience: '',
       address: '',
       pincode: '',
+      file: null,
       fileError: null
     };
   },
@@ -74,24 +76,56 @@ export default {
         return;
       }
       this.fileError = null;
+      this.file = file;
     },
-    handleSignUp() {
-      // Placeholder for signup logic
-      console.log({
-        email: this.email,
-        password: this.password,
-        name: this.name,
-        service: this.service,
-        experience: this.experience,
-        address: this.address,
-        pincode: this.pincode
-      });
-      if (!this.fileError) {
-        // Simulate signup success
-        console.log("Signup successful. Please login to continue.");
-        this.$router.push('/login');
+    async handleSignUp() {
+      if (!this.file) {
+        this.fileError = "Please attach a document.";
+        return;
       }
-    },
+
+      try {
+        const formData = new FormData();
+        formData.append('file', this.file);
+        formData.append('cloud_name', 'dnfmbxrli');
+        formData.append('upload_preset', 'arghaCloud');
+
+        const uploadResponse = await fetch('https://api.cloudinary.com/v1_1/dnfmbxrli/image/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const uploadData = await uploadResponse.json();
+
+        const response = await fetch(`${getApiUrl()}/api/professional/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: this.email,
+            password: this.password,
+            full_name: this.name,
+            service: this.service,
+            experience: this.experience,
+            address: this.address,
+            pincode: this.pincode,
+            document_url: uploadData.url,
+            cover_photo_url: null
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.log('Error:', errorData);
+          return;
+        }
+
+        this.$router.push('/login');
+      } catch (error) {
+        this.fileError = 'An error occurred while signing up. Please try again.';
+      }
+    }
   }
 };
 </script>
