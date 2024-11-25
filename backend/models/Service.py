@@ -30,6 +30,7 @@ class Service(Base):
         self.created_at = datetime.now(timezone.utc)
 
 Service.service_requests = relationship('ServiceRequest', back_populates='service')
+Service.professionals = relationship('Professional', back_populates='service')
 # Example of subservices JSON structure:
 # subservices = [
 #     {"name": "Leak Repair", "price": 300},

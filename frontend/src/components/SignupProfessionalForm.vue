@@ -120,7 +120,8 @@ export default {
             email: this.email,
             password: this.password,
             full_name: this.name,
-            service: this.serviceId, // Send the service ID to the backend
+            service_name: this.services.find(service => service.id === this.serviceId).service_name,
+            service_id: this.serviceId, // Send the service ID to the backend
             experience: this.experience,
             address: this.address,
             pincode: this.pincode,
