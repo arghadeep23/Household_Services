@@ -43,3 +43,7 @@ def delete_service_request(session: Session, request_id: int):
         session.delete(service_request)
         session.commit()
     return service_request
+
+# Get closed service requests by professional id
+def get_closed_service_requests_by_professional_id(session: Session, professional_id: int):
+    return session.query(ServiceRequest).filter(ServiceRequest.professional_id == professional_id, ServiceRequest.status == RequestStatus.CLOSED).all()

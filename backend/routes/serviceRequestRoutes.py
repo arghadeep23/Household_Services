@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from controllers.serviceRequestController import create_service_request, get_service_request_by_id, get_all_service_requests, update_service_request, delete_service_request, get_service_requests_by_customer_id, get_service_requests_by_professional_id
+from controllers.serviceRequestController import create_service_request, get_service_request_by_id, get_all_service_requests, update_service_request, delete_service_request, get_service_requests_by_customer_id, get_service_requests_by_professional_id, get_closed_service_requests_by_professional_id
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from models.ServiceRequest import RequestStatus
@@ -93,6 +93,19 @@ def get_service_requests_by_customer_id_endpoint(customer_id):
 @service_request_bp.route('/service_requests/professional/<int:professional_id>', methods=['GET'])
 def get_service_requests_by_professional_id_endpoint(professional_id):
     service_requests = get_service_requests_by_professional_id(session, professional_id)
+    return jsonify([{
+        'id': service_request.id,
+        'service_id': service_request.service_id,
+        'user_id': service_request.user_id,
+        'professional_id': service_request.professional_id,
+        'selected_subservices': service_request.selected_subservices,
+        'status': service_request.status.value,
+        'created_at': service_request.created_at
+    } for service_request in service_requests])
+
+@service_request_bp.route('/service_requests/professional/<int:professional_id>/closed', methods=['GET'])
+def get_service_requests_by_professional_id_closed_endpoint(professional_id):
+    service_requests = get_closed_service_requests_by_professional_id(session, professional_id)
     return jsonify([{
         'id': service_request.id,
         'service_id': service_request.service_id,

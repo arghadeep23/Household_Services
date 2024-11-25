@@ -16,11 +16,8 @@
       </div>
       <div class="form-group">
         <label for="service">Service</label>
-        <select id="service" v-model="service">
-          <option>Plumbing</option>
-          <option>Electrician</option>
-          <option>Cleaning</option>
-          <option>Gardening</option>
+        <select id="service" v-model="serviceId">
+          <option v-for="service in services" :key="service.id" :value="service.id">{{ service.service_name }}</option>
         </select>
       </div>
       <div class="form-group">
@@ -49,6 +46,7 @@
 
 <script>
 import { getApiUrl } from '../utils/api';
+
 export default {
   name: "SignupProfessionalForm",
   data() {
@@ -56,15 +54,31 @@ export default {
       email: '',
       password: '',
       name: '',
-      service: '',
+      serviceId: '',
+      services: [],
       experience: '',
       address: '',
       pincode: '',
       file: null,
-      fileError: null
+      fileError: null,
     };
   },
+  created() {
+    this.fetchServices();
+  },
   methods: {
+    async fetchServices() {
+      try {
+        const response = await fetch(`${getApiUrl()}/api/services`);
+        if (response.ok) {
+          this.services = await response.json();
+        } else {
+          console.error('Failed to fetch services');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    },
     validateFile(event) {
       const file = event.target.files[0];
       if (!file) {
@@ -106,7 +120,7 @@ export default {
             email: this.email,
             password: this.password,
             full_name: this.name,
-            service: this.service,
+            service: this.serviceId, // Send the service ID to the backend
             experience: this.experience,
             address: this.address,
             pincode: this.pincode,
