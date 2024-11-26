@@ -17,15 +17,28 @@ from routes.professionalAuthRoutes import professional_auth_bp
 from routes.ssoRoutes import sso_bp
 from routes.serviceRoutes import service_bp
 from routes.serviceRequestRoutes import service_request_bp
+from routes.serviceRemarkRoutes import service_remark_bp
+from dotenv import load_dotenv
+from flask_jwt_extended import JWTManager
+import os
+
+load_dotenv()
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 app = Flask(__name__)
-
+app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+app.config["JWT_HEADER_NAME"] = "Authorization"  # Header name for the JWT
+app.config["JWT_HEADER_TYPE"] = "Bearer"  # Prefix for the JWT token
 # Enable CORS for all origins, headers, and methods
 # Enable CORS for all origins, headers, and methods
 # CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}})
+jwt = JWTManager(app)
+CORS(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 CORS(app, resources={r"/*": {"origins": "*"}})
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}})
+
 
 
 # Handle preflight requests explicitly
@@ -54,6 +67,7 @@ app.register_blueprint(professional_auth_bp, url_prefix='/api')
 app.register_blueprint(sso_bp, url_prefix='/api')
 app.register_blueprint(service_bp, url_prefix='/api')
 app.register_blueprint(service_request_bp, url_prefix='/api')
+app.register_blueprint(service_remark_bp, url_prefix='/api')
 
 if __name__ == '__main__':
     app.run(debug=True)

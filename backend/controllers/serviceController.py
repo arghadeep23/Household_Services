@@ -1,5 +1,16 @@
 from models.Service import Service, ServiceStatus
 from sqlalchemy.orm import Session
+import jwt
+import os
+from dotenv import load_dotenv
+from flask import jsonify
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+
+# Load environment variables from .env file
+load_dotenv()
+
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
 
 def create_service(session: Session, service_name: str, description: str, base_price: float, subservices: dict):
     new_service = Service(

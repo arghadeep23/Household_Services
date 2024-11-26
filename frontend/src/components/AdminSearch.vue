@@ -52,7 +52,7 @@
                     </thead>
                     <tbody>
                         <tr v-for="item in filteredResults" :key="item.id">
-                            <td v-for="column in columns" :key="column">{{ item[column.toLowerCase()] }}</td>
+                            <td v-for="column in columns" :key="column">{{ getItemValue(item, column) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -62,6 +62,8 @@
 </template>
 
 <script>
+import { getApiUrl } from '../utils/api';
+
 export default {
     name: "AdminSearch",
     data() {
@@ -74,24 +76,49 @@ export default {
                 status: "", // For service requests
             },
             entities: {
-                customers: [
-                    { id: 1, name: "Alice", email: "alice@example.com", address: "123 Main St", pincode: "123456" },
-                    { id: 2, name: "Bob", email: "bob@example.com", address: "456 Oak St", pincode: "654321" },
-                ],
-                professionals: [
-                    { id: 1, name: "John", serviceName: "Plumbing", status: "Approved" },
-                    { id: 2, name: "Jane", serviceName: "Gardening", status: "Rejected" },
-                ],
-                services: [
-                    { id: 1, name: "Plumbing", basePrice: 100, description: "General plumbing work." },
-                    { id: 2, name: "Gardening", basePrice: 200, description: "Lawn care and maintenance." },
-                ],
-                serviceRequests: [
-                    { id: 101, professional: "John", requestedDate: "2024-11-10", status: "Requested" },
-                    { id: 102, professional: "Jane", requestedDate: "2024-11-15", status: "Closed" },
-                ],
+                customers: [],
+                professionals: [],
+                services: [],
+                serviceRequests: [],
             },
         };
+    },
+    created() {
+        this.fetchAllData();
+    },
+    methods: {
+        async fetchAllData() {
+            try {
+                const [customers, professionals, services, serviceRequests] = await Promise.all([
+                    fetch(`${getApiUrl()}/api/users`).then(res => res.json()),
+                    fetch(`${getApiUrl()}/api/professionals`).then(res => res.json()),
+                    fetch(`${getApiUrl()}/api/services`).then(res => res.json()),
+                    fetch(`${getApiUrl()}/api/service_requests`).then(res => res.json())
+                ]);
+
+                this.entities.customers = customers;
+                this.entities.professionals = professionals;
+                this.entities.services = services;
+                this.entities.serviceRequests = serviceRequests;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        },
+        getItemValue(item, column) {
+            const columnMapping = {
+                "Name": "full_name",
+                "Service Name": "service_name",
+                "Base Price": "base_price",
+                "Assigned Professional": "assigned_professional",
+                "Requested Date": "created_at",
+                "Status": "status",
+                "Email": "email",
+                "Address": "address",
+                "Pincode": "pincode",
+                "ID": "id"
+            };
+            return item[columnMapping[column]] || item[column.toLowerCase()];
+        }
     },
     computed: {
         entityDisplayName() {
@@ -107,7 +134,7 @@ export default {
             const columnMapping = {
                 customers: ["ID", "Name", "Email", "Address", "Pincode"],
                 professionals: ["ID", "Name", "Service Name", "Status"],
-                services: ["ID", "Name", "Base Price", "Description"],
+                services: ["ID", "Service Name", "Base Price", "Description"],
                 serviceRequests: ["ID", "Assigned Professional", "Requested Date", "Status"],
             };
             return columnMapping[this.selectedEntity];
@@ -140,3 +167,9 @@ export default {
     },
 };
 </script>
+
+<style scoped>
+.options {
+    margin-top: 1rem;
+}
+</style>

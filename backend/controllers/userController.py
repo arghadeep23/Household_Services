@@ -13,11 +13,10 @@ def get_user_by_id(session: Session, user_id: int):
 def get_all_users(session: Session):
     return session.query(User).all()
 
-def update_user(session: Session, user_id: int, email: str, password: str, full_name: str, address: str, pincode: str):
+def update_user(session: Session, user_id: int, email: str, full_name: str, address: str, pincode: str):
     user = get_user_by_id(session, user_id)
     if user:
         user.email = email
-        user.password = password
         user.full_name = full_name
         user.address = address
         user.pincode = pincode

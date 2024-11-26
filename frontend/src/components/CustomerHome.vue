@@ -74,7 +74,7 @@
                     <th>ID</th>
                     <th>Service Name</th>
                     <th>Professional Name</th>
-                    <th>Phone Number</th>
+                    <th>Email</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -82,12 +82,12 @@
                 <tr v-for="service in serviceHistory" :key="service.id">
                     <td>{{ service.id }}</td>
                     <td>{{ service.service_name }}</td>
-                    <td>{{ service.professionalName }}</td>
-                    <td>{{ service.phone }}</td>
+                    <td>{{ service.professional_name }}</td>
+                    <td>{{ service.professional_email }}</td>
                     <td>
-                        <span v-if="service.status !== 'Assigned'">{{ service.status }}</span>
-                        <button v-else class="btn btn-outline-primary btn-sm" @click="closeService(service)">
-                            Close It
+                        <span v-if="service.status !== 'Accepted'">{{ service.status }}</span>
+                        <button v-else class=" btn btn-outline-primary btn-sm" @click="closeService(service)">
+                            Accepted | Close It
                         </button>
                     </td>
                 </tr>
@@ -103,13 +103,13 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p><strong>Service Name:</strong> {{ closingService?.name }}</p>
-                        <p><strong>Service ID:</strong> {{ closingService?.id }}</p>
-                        <p><strong>Description:</strong> {{ closingService?.description }}</p>
-                        <p><strong>Creation Date:</strong> {{ closingService?.creationDate }}</p>
-                        <p><strong>Professional ID:</strong> {{ closingService?.professionalId }}</p>
-                        <p><strong>Professional Name:</strong> {{ closingService?.professionalName }}</p>
-                        <p><strong>Contact:</strong> {{ closingService?.phone }}</p>
+                        <p><strong>Service Name:</strong> {{ closingService?.service_name }}</p>
+                        <p><strong>Service Request ID:</strong> {{ closingService?.id }}</p>
+                        <p><strong>Description:</strong> {{ closingService?.service_description }}</p>
+                        <p><strong>Creation Date:</strong> {{ closingService?.created_at }}</p>
+                        <p><strong>Professional ID:</strong> {{ closingService?.professional_id }}</p>
+                        <p><strong>Professional Name:</strong> {{ closingService?.professional_name }}</p>
+                        <p><strong>Contact:</strong> {{ closingService?.professional_email }}</p>
                         <h6>Rate the Service</h6>
                         <div class="rating">
                             <span v-for="n in 5" :key="n" class="star" :class="{ selected: n <= rating }"
@@ -212,16 +212,42 @@ export default {
             }
         },
         closeService(service) {
+            console.log('Closing service:', service);
             this.closingService = service;
             const modal = new Modal(document.getElementById('closeServiceModal'));
             modal.show();
         },
-        submitRating() {
+        async submitRating() {
             console.log('Rating submitted:', {
                 rating: this.rating,
                 remarks: this.remarks,
                 service: this.closingService,
             });
+            // create a service remark 
+            try {
+                const response = await fetch(`${getApiUrl()}/api/service_remarks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        service_request_id: this.closingService.id,
+                        professional_id: this.closingService.professional_id,
+                        user_id: this.$route.params.id,
+                        service_description: this.closingService.service_description,
+                        rating: this.rating,
+                        user_remark: this.remarks,
+                        professional_contact: this.closingService.professional_email
+                    }),
+                });
+                if (response.ok) {
+                    console.log('Service remark submitted successfully');
+                } else {
+                    console.error('Failed to submit service remark');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
         },
     },
 };

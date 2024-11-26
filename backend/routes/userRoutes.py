@@ -30,7 +30,7 @@ def get_all_users_endpoint():
 @user_bp.route('/users/<int:user_id>', methods=['PUT'])
 def update_user_endpoint(user_id):
     data = request.get_json()
-    user = update_user(session, user_id, data['email'], data['password'], data['full_name'], data['address'], data['pincode'])
+    user = update_user(session, user_id, data['email'], data['full_name'], data['address'], data['pincode'])
     if user:
         return jsonify({'id': user.id, 'email': user.email, 'full_name': user.full_name, 'address': user.address, 'pincode': user.pincode, 'created_at': user.created_at})
     return jsonify({'error': 'User not found'}), 404

@@ -138,7 +138,7 @@ export default {
         const data = await response.json();
         // setting the token and other details in local storage
         localStorage.setItem('professional', data.token);
-        localStorage.setItem('professional_id', data.professional_id);
+        localStorage.setItem('professional_id', data.id);
         localStorage.setItem('professional_service_id', data.service_id);
         // redirecting to the dashboard
         this.$router.push(`/professional/${data.professional_id}`);

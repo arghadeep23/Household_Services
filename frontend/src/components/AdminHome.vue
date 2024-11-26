@@ -48,7 +48,7 @@
           </td>
           <td>{{ professional.full_name }}</td>
           <td>{{ professional.experience }}</td>
-          <td>{{ professional.service }}</td>
+          <td>{{ professional.service_name }}</td>
           <td>
             <div class="btn-group" role="group">
               <button class="btn btn-success btn-sm custom-btn" @click="approveProfessional(professional)">
@@ -168,9 +168,26 @@ export default {
     editService(service) {
       this.viewServiceDetails(service); // Reuse the same logic for now
     },
-    saveServiceDetails(updatedService) {
-      const index = this.services.findIndex((s) => s.id === updatedService.id);
-      if (index !== -1) this.services.splice(index, 1, updatedService);
+    async saveServiceDetails(updatedService) {
+      try {
+        const response = await fetch(`${getApiUrl()}/api/services/${updatedService.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedService)
+        });
+        if (response.ok) {
+          const updatedServiceFromServer = await response.json();
+          const index = this.services.findIndex((s) => s.id === updatedService.id);
+          if (index !== -1) this.services.splice(index, 1, updatedServiceFromServer);
+          alert('Service updated successfully');
+        } else {
+          console.error('Failed to update service');
+        }
+      } catch (error) {
+        console.error('Error updating service:', error);
+      }
       this.selectedService = null; // Close the modal
     },
     // View Professional Details
@@ -179,23 +196,61 @@ export default {
     },
 
     // Approve Professional
-    approveProfessional(professional) {
-      alert(`Professional ${professional.name} has been approved!`);
+    async approveProfessional(professional) {
+      // alert(`Professional ${professional.name} has been approved!`);
+      console.log(professional);
       // Logic to approve professional (e.g., API call) goes here
+      const response = await fetch(`${getApiUrl()}/api/professionals/${professional.id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: 'APPROVED'
+        })
+      });
+
+      if (response.ok) {
+        alert(`Professional ${professional.id} - ${professional.full_name} approved successfully`);
+      } else {
+        alert('Failed to approve professional');
+      }
     },
 
     // Reject Professional
-    rejectProfessional(professional) {
-      alert(`Professional ${professional.name} has been rejected!`);
+    async rejectProfessional(professional) {
+      const response = await fetch(`${getApiUrl()}/api/professionals/${professional.id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: 'REJECTED'
+        })
+      });
+      if (response.ok) {
+        alert(`Professional ${professional.id} - ${professional.full_name} rejected successfully`);
+      } else {
+        alert('Failed to reject professional');
+      }
       // Logic to reject professional (e.g., API call) goes here
+
     },
 
     // Delete Professional
-    deleteProfessional(id) {
+    async deleteProfessional(id) {
       const confirmDelete = confirm("Are you sure you want to delete this professional?");
       if (confirmDelete) {
         this.professionals = this.professionals.filter((professional) => professional.id !== id);
-        alert("Professional has been deleted.");
+        const response = await fetch(`${getApiUrl()}/api/professionals/${id}`, {
+          method: 'DELETE'
+        });
+        if (response.ok) {
+          alert("Professional has been deleted.");
+        }
+        else {
+          alert("Failed to delete professional.");
+        }
       }
     },
     openCreateServiceModal() {

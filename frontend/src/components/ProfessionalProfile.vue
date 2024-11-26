@@ -7,7 +7,8 @@
                 <!-- Name -->
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>
-                    <input type="text" id="name" class="form-control" v-model="profile.name" :disabled="!isEditing" />
+                    <input type="text" id="name" class="form-control" v-model="profile.full_name"
+                        :disabled="!isEditing" />
                 </div>
 
                 <!-- Email -->
@@ -51,10 +52,10 @@
 
                 <!-- Attached PDF -->
                 <div class="mb-3">
-                    <label class="form-label">View Attached PDF</label>
                     <br />
-                    <a :href="profile.attachmentUrl" target="_blank" class="btn btn-outline-primary btn-sm view-pdf">
-                        View PDF
+                    <a :href="profile.document_url" target="_blank" class="btn btn-outline-primary btn-sm view-pdf"
+                        download>
+                        Download PDF
                     </a>
                 </div>
 
@@ -73,26 +74,28 @@
 
                 </div>
             </form>
+            <div v-if="errorMessages.profile">
+                <div class="alert alert-danger mt-3">{{ errorMessages.profile }} </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
+import { getApiUrl } from '@/utils/api';
 export default {
     name: "ProfessionalProfile",
     data() {
         return {
             isEditing: false,
-            profile: {
-                name: "John Doe",
-                email: "john.doe@example.com",
-                pincode: "123456",
-                address: "123 Elm Street, Springfield",
-                service: "Plumbing",
-                experience: 5,
-                attachmentUrl: "https://example.com/documents/profile.pdf", // Placeholder PDF URL
-            },
+            profile: {},
+            errorMessages: {
+                profile: null,
+            }
         };
+    },
+    created() {
+        this.fetchProfile();
     },
     methods: {
         toggleEdit() {
@@ -106,6 +109,23 @@ export default {
             console.log("Profile saved:", this.profile);
             this.isEditing = false;
         },
+        async fetchProfile() {
+            const professionalId = this.$route.params.id;
+            console.log("Professional ID:", professionalId);
+            if (!professionalId || isNaN(professionalId)) {
+                console.error("Professional ID not found in route params");
+                // redirect to login 
+                this.$router.push('/login');
+            }
+            const response = await fetch(`${getApiUrl()}/api/professionals/${professionalId}`);
+            if (response.ok) {
+                this.profile = await response.json();
+            }
+            else {
+                console.error("Failed to fetch professional profile");
+                this.errorMessages.profile = "Failed to fetch professional profile";
+            }
+        }
     },
 };
 </script>

@@ -2,6 +2,7 @@ from models.Professional import Professional, ProfessionalStatus
 from sqlalchemy.orm import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
+from flask_jwt_extended import create_access_token
 import os
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
@@ -31,8 +32,7 @@ def generate_token(professional: Professional):
         "id": professional.id,
         "email": professional.email,
         "full_name": professional.full_name,
-        "service_id": professional.service_id,
-        "status": professional.status.value,
+        "role": "Professional",
         "exp": datetime.now(timezone.utc) + timedelta(hours=24)
     }
     token = jwt.encode(payload, JWT_SECRET_KEY, algorithm="HS256")

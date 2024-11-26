@@ -7,7 +7,8 @@
                 <!-- Name -->
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>
-                    <input type="text" id="name" class="form-control" v-model="profile.name" :disabled="!isEditing" />
+                    <input type="text" id="name" class="form-control" v-model="profile.full_name"
+                        :disabled="!isEditing" />
                 </div>
 
                 <!-- Email -->
@@ -46,23 +47,28 @@
 
                 </div>
             </form>
+            <div v-if="errorMessages.profile">
+                <div class="alert alert-danger mt-3">{{ errorMessages.profile }}</div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
+import { getApiUrl } from '@/utils/api';
 export default {
     name: "CustomerProfile",
     data() {
         return {
             isEditing: false,
-            profile: {
-                name: "John Doe",
-                email: "john.doe@example.com",
-                pincode: "123456",
-                address: "123 Elm Street, Springfield",
+            profile: {},
+            errorMessages: {
+                profile: null,
             },
         };
+    },
+    created() {
+        this.fetchProfile();
     },
     methods: {
         toggleEdit() {
@@ -71,11 +77,44 @@ export default {
         cancelEdit() {
             this.isEditing = false;
         },
-        saveProfile() {
+        async saveProfile() {
             // Simulate saving changes to the backend
-            console.log("Profile saved:", this.profile);
+            const customerId = this.$route.params.id;
+            const response = await fetch(`${getApiUrl()}/api/users/${customerId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(this.profile),
+            });
+            if (response.ok) {
+                console.log('Profile updated successfully');
+                this.isEditing = false;
+            } else {
+                console.error('Failed to update profile');
+                this.errorMessages.profile = 'Failed to update profile';
+            }
             this.isEditing = false;
+
         },
+        async fetchProfile() {
+            // Simulate fetching profile data from the backend
+            const customerId = this.$route.params.id;
+            if (!customerId || customerId === 'undefined') {
+                console.error('Customer ID not found');
+                // proceed to login 
+                this.$router.push('/login');
+            }
+            const response = await fetch(`${getApiUrl()}/api/users/${customerId}`);
+            const data = await response.json();
+            if (response.ok) {
+                this.profile = data;
+            } else {
+                console.error('Failed to fetch customer profile');
+                // error message 
+                this.errorMessages.profile = 'Failed to fetch customer profile';
+            }
+        }
     },
 };
 </script>

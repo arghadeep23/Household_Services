@@ -3,7 +3,7 @@
         <div class="container mt-4">
             <!-- Profile Navigation -->
             <div class="d-flex justify-content-end mb-3">
-                <router-link :to="`/professional/${professionalId}/profile`" class="btn btn-primary">
+                <router-link :to="`/professional/${this.$route.params.id}/profile`" class="btn btn-primary">
                     Go to Profile
                 </router-link>
             </div>
@@ -22,8 +22,8 @@
                 <tbody>
                     <tr v-for="service in todaysServices" :key="service.id">
                         <td>{{ service.id }}</td>
-                        <td>{{ service.customerName }}</td>
-                        <td>{{ service.location }}</td>
+                        <td>{{ service.user.full_name }}</td>
+                        <td>{{ service.user.address + ', ' + service.user.pincode }}</td>
                         <td>
                             <div class="btn-group" role="group">
                                 <button class="btn btn-success btn-sm custom-btn" @click="acceptService(service.id)"
@@ -47,7 +47,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Customer Name</th>
-                        <th>Contact Phone</th>
+                        <th>Contact Email</th>
                         <th>Location (Pincode)</th>
                         <th>Date</th>
                         <th>Rating (out of 5)</th>
@@ -56,10 +56,10 @@
                 <tbody>
                     <tr v-for="service in closedServices" :key="service.id">
                         <td>{{ service.id }}</td>
-                        <td>{{ service.customerName }}</td>
-                        <td>{{ service.contactPhone }}</td>
-                        <td>{{ service.location }}</td>
-                        <td>{{ service.date }}</td>
+                        <td>{{ service.user.full_name }}</td>
+                        <td>{{ service.user.email }}</td>
+                        <td>{{ service.user.address + '(' + service.user.pincode + ')' }}</td>
+                        <td>{{ service.created_at }}</td>
                         <td>
                             <span :class="getRatingClass(service.rating)">
                                 {{ service.rating }}
@@ -73,47 +73,65 @@
 </template>
 
 <script>
+import { getApiUrl } from "@/utils/api";
 export default {
     name: "ProfessionalHome",
     data() {
         return {
-            professionalId: 1, // Replace with dynamic value when integrated with backend
-            todaysServices: [
-                {
-                    id: 1,
-                    customerName: "John Doe",
-                    location: "123 Main St, 560001",
-                },
-                {
-                    id: 2,
-                    customerName: "Jane Smith",
-                    location: "45 Elm St, 400012",
-                },
-            ],
-            closedServices: [
-                {
-                    id: 10,
-                    customerName: "Alice Brown",
-                    contactPhone: "9876543210",
-                    location: "789 Maple St, 700015",
-                    date: "2024-11-22",
-                    rating: 4,
-                },
-                {
-                    id: 11,
-                    customerName: "Bob White",
-                    contactPhone: "8765432109",
-                    location: "56 Oak St, 500004",
-                    date: "2024-11-20",
-                    rating: 5,
-                },
-            ],
+            todaysServices: [],
+            closedServices: [],
         };
     },
+    created() {
+        Promise.all([this.fetchTodayServices(), this.fetchClosedServices()])
+            .then(() => {
+                console.log('Fetched today and closed services successfully');
+            })
+            .catch(error => {
+                console.error('Error fetching services:', error);
+            });
+        // this.fetchTodayServices();
+        // this.fetchClosedServices();
+    },
     methods: {
-        acceptService(serviceId) {
-            alert(`Service ${serviceId} accepted!`);
+        async fetchClosedServices() {
             // Add API call or logic here
+            const response = await fetch(`${getApiUrl()}/api//professionals/closed-service-requests/${this.$route.params.id}`);
+            if (response.ok) {
+                this.closedServices = await response.json();
+            }
+            else {
+                console.error('Failed to fetch closed services');
+            }
+        },
+        async acceptService(serviceId) {
+            alert(`Service ${serviceId} accepted!`);
+            try {
+                const request_id = serviceId
+                const response = await fetch(`${getApiUrl()}/api/service_requests/${request_id}/assign_professional`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ // Ensure the body is a JSON string
+                        "professional_id": this.$route.params.id
+                    }),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log(result);
+                    // alert(`Service ${serviceId} accepted!`);
+                    // Uncomment the following line if you want to fetch updated services
+                    this.fetchTodayServices();
+                } else {
+                    const error = await response.json();
+                    alert(`Failed to accept service ${serviceId}: ${error.error || 'Unknown error'}`);
+                }
+            } catch (err) {
+                console.error("Error during API call:", err);
+                alert(`An error occurred: ${err.message}`);
+            }
         },
         rejectService(serviceId) {
             alert(`Service ${serviceId} rejected!`);
@@ -124,6 +142,16 @@ export default {
             if (rating >= 2) return "text-warning";
             return "text-danger";
         },
+        async fetchTodayServices() {
+            const professionalId = this.$route.params.id;
+            const response = await fetch(`${getApiUrl()}/api/professionals/service-requests/${professionalId}`);
+            if (response.ok) {
+                this.todaysServices = await response.json();
+            }
+            else {
+                console.error('Failed to fetch today services');
+            }
+        }
     },
 };
 </script>

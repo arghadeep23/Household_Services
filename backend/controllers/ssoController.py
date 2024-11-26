@@ -6,6 +6,7 @@ from werkzeug.security import check_password_hash
 import jwt
 import os
 from datetime import datetime, timedelta, timezone
+from flask_jwt_extended import create_access_token
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -30,6 +31,7 @@ def authenticate_user(session: Session, email: str, password: str, role: str):
     except Exception as e:
         print(f"Error occurred during authentication: {e}")
     return None
+
 
 def generate_token(entity, role: str):
     payload = {
