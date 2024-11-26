@@ -12,10 +12,10 @@ professional_auth_bp = Blueprint('professional_auth', __name__)
 @professional_auth_bp.route('/professional/signup', methods=['POST'])
 def signup():
     data = request.get_json()
-    professional = create_professional(session, data['email'], data['password'], data['full_name'], data['service'], data['experience'], data['document_url'], data['cover_photo_url'], data['address'], data['pincode'])
+    professional = create_professional(session, data['email'], data['password'], data['full_name'], data['experience'], data['document_url'], data['cover_photo_url'], data['address'], data['pincode'], data['service_id'])
     if professional:
         token = generate_token(professional)
-        return jsonify({"token": token}), 201
+        return jsonify({"token": token, "full_name": data['full_name'], "email": data["email"], "service_id": data['service_id'], "professional_id": professional.id}), 201
     return jsonify({"error": "Professional already exists"}), 409
 
 @professional_auth_bp.route('/professional/login', methods=['POST'])

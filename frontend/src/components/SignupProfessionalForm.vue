@@ -16,7 +16,7 @@
       </div>
       <div class="form-group">
         <label for="service">Service</label>
-        <select id="service" v-model="serviceId">
+        <select id="service" v-model="service_id">
           <option v-for="service in services" :key="service.id" :value="service.id">{{ service.service_name }}</option>
         </select>
       </div>
@@ -54,7 +54,7 @@ export default {
       email: '',
       password: '',
       name: '',
-      serviceId: '',
+      service_id: '',
       services: [],
       experience: '',
       address: '',
@@ -120,8 +120,7 @@ export default {
             email: this.email,
             password: this.password,
             full_name: this.name,
-            service_name: this.services.find(service => service.id === this.serviceId).service_name,
-            service_id: this.serviceId, // Send the service ID to the backend
+            service_id: this.service_id, // Send the service ID to the backend
             experience: this.experience,
             address: this.address,
             pincode: this.pincode,
@@ -136,7 +135,13 @@ export default {
           return;
         }
 
-        this.$router.push('/login');
+        const data = await response.json();
+        // setting the token and other details in local storage
+        localStorage.setItem('professional', data.token);
+        localStorage.setItem('professional_id', data.professional_id);
+        localStorage.setItem('professional_service_id', data.service_id);
+        // redirecting to the dashboard
+        this.$router.push(`/professional/${data.professional_id}`);
       } catch (error) {
         this.fileError = 'An error occurred while signing up. Please try again.';
       }

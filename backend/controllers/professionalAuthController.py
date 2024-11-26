@@ -11,11 +11,11 @@ load_dotenv()
 
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
-def create_professional(session: Session, email: str, password: str, full_name: str, service: str, experience: int, document_url: str, cover_photo_url: str, address: str, pincode: str):
+def create_professional(session: Session, email: str, password: str, full_name: str, experience: int, document_url: str, cover_photo_url: str, address: str, pincode: str, service_id: int):
     if session.query(Professional).filter(Professional.email == email).first():
         return None  # Professional already exists
     hashed_password = generate_password_hash(password)
-    new_professional = Professional(email=email, password=hashed_password, full_name=full_name, service=service, experience=experience, document_url=document_url, cover_photo_url=cover_photo_url, address=address, pincode=pincode)
+    new_professional = Professional(email=email, password=hashed_password, full_name=full_name, experience=experience, document_url=document_url, cover_photo_url=cover_photo_url, address=address, pincode=pincode, service_id=service_id)
     session.add(new_professional)
     session.commit()
     return new_professional
@@ -31,7 +31,7 @@ def generate_token(professional: Professional):
         "id": professional.id,
         "email": professional.email,
         "full_name": professional.full_name,
-        "service": professional.service,
+        "service_id": professional.service_id,
         "status": professional.status.value,
         "exp": datetime.now(timezone.utc) + timedelta(hours=24)
     }
