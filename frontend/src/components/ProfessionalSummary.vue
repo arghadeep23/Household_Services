@@ -29,13 +29,47 @@ import Chart from "chart.js/auto";
 
 export default {
     name: "ProfessionalSummary",
+    data() {
+        return {
+            reviewsData: [],
+            servicesData: []
+        };
+    },
     mounted() {
-        this.renderReviewsChart();
-        this.renderServicesChart();
+        const professionalId = this.$route.params.id;
+        this.fetchRatings(professionalId);
+        this.fetchServiceRequests(professionalId);
     },
     methods: {
+        async fetchRatings(professionalId) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/professionals/closed-service-requests/${professionalId}`);
+                const data = await response.json();
+                this.reviewsData = data.map(item => item.rating);
+                this.renderReviewsChart();
+            } catch (error) {
+                console.error("Error fetching ratings:", error);
+            }
+        },
+        async fetchServiceRequests(professionalId) {
+            try {
+                const response = await fetch(`http://localhost:5000/api/service_requests/professional/${professionalId}`);
+                const data = await response.json();
+                this.servicesData = data.filter(item => item.status !== "Rejected");
+                this.renderServicesChart();
+            } catch (error) {
+                console.error("Error fetching service requests:", error);
+            }
+        },
         renderReviewsChart() {
             const ctx = document.getElementById("reviewsChart").getContext("2d");
+            const reviewCounts = [0, 0, 0, 0, 0];
+            this.reviewsData.forEach(rating => {
+                const index = Math.floor(rating) - 1;
+                if (index >= 0 && index < 5) {
+                    reviewCounts[index]++;
+                }
+            });
             new Chart(ctx, {
                 type: "bar",
                 data: {
@@ -43,7 +77,7 @@ export default {
                     datasets: [
                         {
                             label: "Number of Reviews",
-                            data: [2, 5, 10, 20, 15], // Dummy review counts
+                            data: reviewCounts,
                             backgroundColor: [
                                 "#f44336", // Red for 1 Star
                                 "#ff9800", // Orange for 2 Stars
@@ -69,15 +103,21 @@ export default {
         },
         renderServicesChart() {
             const ctx = document.getElementById("servicesChart").getContext("2d");
+            const serviceCounts = { Accepted: 0, Closed: 0 };
+            this.servicesData.forEach(service => {
+                if (service.status === "Accepted" || service.status === "Closed") {
+                    serviceCounts[service.status]++;
+                }
+            });
             new Chart(ctx, {
                 type: "pie",
                 data: {
-                    labels: ["Rejected", "Accepted", "Closed"],
+                    labels: ["Accepted", "Closed"],
                     datasets: [
                         {
                             label: "Service Status",
-                            data: [3, 12, 8], // Dummy service status counts
-                            backgroundColor: ["#f44336", "#2196f3", "#4caf50"],
+                            data: [serviceCounts.Accepted, serviceCounts.Closed],
+                            backgroundColor: ["#2196f3", "#4caf50"],
                         },
                     ],
                 },
@@ -97,7 +137,6 @@ export default {
     },
 };
 </script>
-
 
 <style scoped>
 .card {

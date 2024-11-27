@@ -9,7 +9,17 @@ def create_professional(session: Session, email: str, password: str, full_name: 
     return new_professional
 
 def get_professional_by_id(session: Session, professional_id: int):
-    return session.query(Professional).filter(Professional.id == professional_id).first()
+    try:
+        # We also want to return the service name along with the professional details
+        # So we will use the service_id in the professional record to fetch the service name from the services table
+        professional = session.query(Professional).filter(Professional.id == professional_id).first()
+        if professional:
+            service = session.query(Service).filter(Service.id == professional.service_id).first()
+            professional.service_name = service.service_name if service else None
+        return professional
+    except Exception as e:
+        print(f"Error fetching professional by id: {e}")
+        return None
 
 def get_all_professionals(session: Session):
     professionals = session.query(Professional).all()

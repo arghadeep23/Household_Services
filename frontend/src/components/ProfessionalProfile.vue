@@ -35,7 +35,7 @@
                 <!-- Service -->
                 <div class="mb-3">
                     <label for="service" class="form-label">Service</label>
-                    <select id="service" class="form-select" v-model="profile.service" :disabled="!isEditing">
+                    <select id="service" class="form-select" v-model="profile.service_name" :disabled="!isEditing">
                         <option value="Plumbing">Plumbing</option>
                         <option value="Electrician">Electrician</option>
                         <option value="Cleaning">Cleaning</option>

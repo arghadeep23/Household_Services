@@ -32,7 +32,7 @@ def create_professional_endpoint():
 def get_professional_endpoint(professional_id):
     professional = get_professional_by_id(session, professional_id)
     if professional:
-        return jsonify({'id': professional.id, 'email': professional.email, 'full_name': professional.full_name, 'experience': professional.experience, 'document_url': professional.document_url, 'cover_photo_url': professional.cover_photo_url, 'address': professional.address, 'pincode': professional.pincode, 'status': professional.status.value, 'created_at': professional.created_at, 'service_id': professional.service_id})
+        return jsonify({'id': professional.id, 'email': professional.email, 'full_name': professional.full_name, 'experience': professional.experience, 'document_url': professional.document_url, 'cover_photo_url': professional.cover_photo_url, 'address': professional.address, 'pincode': professional.pincode, 'status': professional.status.value, 'created_at': professional.created_at, 'service_id': professional.service_id, 'service_name': professional.service_name})
     return jsonify({'error': 'Professional not found'}), 404
 
 @professional_bp.route('/professionals', methods=['GET'])
@@ -90,7 +90,7 @@ def get_professional_closed_service_requests_endpoint(professional_id):
         user_details = {user['id']: user for user in user_details}
 
         # return the closed service requests with user details
-        return jsonify([{'id': request.id, 'user_id': request.user_id, 'service_id': request.service_id, 'status': request.status.value, 'created_at': request.created_at, 'user': user_details[request.user_id], 'selected_subservices': request.selected_subservices} for request in service_requests])
+        return jsonify([{'id': request.id, 'user_id': request.user_id, 'service_id': request.service_id, 'status': request.status.value, 'created_at': request.created_at, 'user': user_details[request.user_id], 'selected_subservices': request.selected_subservices, 'rating': request.user_rating, 'remark':request.user_remark} for request in service_requests])
     return jsonify({'error': 'Professional not found'}), 404
 
         

@@ -31,27 +31,57 @@ Chart.register(...registerables);
 
 export default {
     name: "AdminSummary",
+    data() {
+        return {
+            ratings: [],
+            serviceRequests: []
+        };
+    },
     mounted() {
-        this.renderRatingsChart();
-        this.renderServiceRequestChart();
+        this.fetchRatings();
+        this.fetchServiceRequests();
     },
     methods: {
+        async fetchRatings() {
+            try {
+                const response = await fetch('http://localhost:5000/api/service_remarks');
+                this.ratings = await response.json();
+                this.renderRatingsChart();
+            } catch (error) {
+                console.error("Error fetching ratings:", error);
+            }
+        },
+        async fetchServiceRequests() {
+            try {
+                const response = await fetch('http://localhost:5000/api/service_requests');
+                this.serviceRequests = await response.json();
+                this.renderServiceRequestChart();
+            } catch (error) {
+                console.error("Error fetching service requests:", error);
+            }
+        },
         renderRatingsChart() {
+            const ratingsData = this.ratings.reduce((acc, rating) => {
+                acc[Math.floor(rating.rating) - 1]++;
+                return acc;
+            }, [0, 0, 0, 0, 0]);
+            console.log("Ratings Data:", ratingsData);
+
             const ctx = document.getElementById("ratingsChart").getContext("2d");
             new Chart(ctx, {
                 type: "doughnut",
                 data: {
-                    labels: ["5 Stars", "4 Stars", "3 Stars", "2 Stars", "1 Star"],
+                    labels: ["1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars"],
                     datasets: [
                         {
                             label: "Ratings Distribution",
-                            data: [50, 30, 10, 5, 5],
+                            data: ratingsData,
                             backgroundColor: [
+                                "#f44336", // Red 
+                                "#ffc107", // Amber 
+                                "#ffeb3b", // Yellow 
+                                "#8bc34a", // Light Green 
                                 "#4caf50", // Green
-                                "#8bc34a", // Light Green
-                                "#ffeb3b", // Yellow
-                                "#ffc107", // Amber
-                                "#f44336", // Red
                             ],
                         },
                     ],
@@ -67,15 +97,22 @@ export default {
             });
         },
         renderServiceRequestChart() {
+            const serviceRequestData = this.serviceRequests.reduce((acc, request) => {
+                if (request.status === 'Requested') acc[0]++;
+                if (request.status === 'Accepted') acc[1]++;
+                if (request.status === 'Closed') acc[2]++;
+                return acc;
+            }, [0, 0, 0]);
+
             const ctx = document.getElementById("serviceRequestChart").getContext("2d");
             new Chart(ctx, {
                 type: "bar",
                 data: {
-                    labels: ["Requested", "Approved", "Closed"],
+                    labels: ["Requested", "Assigned", "Closed"],
                     datasets: [
                         {
                             label: "Service Requests",
-                            data: [40, 30, 50],
+                            data: serviceRequestData,
                             backgroundColor: [
                                 "#2196f3", // Blue
                                 "#4caf50", // Green

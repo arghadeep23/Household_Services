@@ -28,7 +28,7 @@
 
                 <!-- Results Section -->
                 <div class="col-md-9">
-                    <h4>Search Results</h4>
+                    <h4>Closed Requests - Search Results</h4>
                     <table class="table table-striped table-hover mt-3">
                         <thead class="thead-dark">
                             <tr>
@@ -37,7 +37,7 @@
                                 <th>Contact Phone</th>
                                 <th>Location (Pincode)</th>
                                 <th>Date</th>
-                                <th>Rating (out of 5)</th>
+                                <th>Rating</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -63,37 +63,13 @@
         </div>
     </div>
 </template>
+
 <script>
 export default {
     name: "ProfessionalSearch",
     data() {
         return {
-            services: [
-                {
-                    id: 1,
-                    customerName: "John Doe",
-                    contactPhone: "9876543210",
-                    location: "123 Main St, 560001",
-                    date: "2024-11-23",
-                    rating: 4,
-                },
-                {
-                    id: 2,
-                    customerName: "Jane Smith",
-                    contactPhone: "8765432109",
-                    location: "45 Elm St, 400012",
-                    date: "2024-11-22",
-                    rating: 5,
-                },
-                {
-                    id: 3,
-                    customerName: "Alice Brown",
-                    contactPhone: "7654321098",
-                    location: "789 Maple St, 700015",
-                    date: "2024-11-20",
-                    rating: 3,
-                },
-            ],
+            services: [],
             filters: {
                 date: "",
                 locationName: "",
@@ -127,9 +103,31 @@ export default {
             if (rating >= 2) return "text-warning";
             return "text-danger";
         },
+        async fetchServices() {
+            try {
+                const professionalId = this.$route.params.id;
+                const response = await fetch(`http://localhost:5000/api/professionals/closed-service-requests/${professionalId}`);
+                const data = await response.json();
+                this.services = data.map(service => ({
+                    id: service.id,
+                    customerName: service.user.full_name,
+                    contactPhone: service.user.email,
+                    location: `${service.user.address}, ${service.user.pincode}`,
+                    date: new Date(service.created_at).toISOString().split('T')[0],
+                    rating: service.rating,
+                }));
+            } catch (error) {
+                console.error("Error fetching services:", error);
+                this.services = [];
+            }
+        }
+    },
+    mounted() {
+        this.fetchServices();
     },
 };
 </script>
+
 <style scoped>
 thead.thead-dark {
     background-color: #343a40;

@@ -30,10 +30,10 @@
                                     style="opacity: 0.9;">
                                     Accept
                                 </button>
-                                <button class="btn btn-danger btn-sm custom-btn" @click="rejectService(service.id)"
+                                <!-- <button class="btn btn-danger btn-sm custom-btn" @click="rejectService(service.id)"
                                     style="opacity: 0.9;">
                                     Reject
-                                </button>
+                                </button> -->
                             </div>
                         </td>
                     </tr>

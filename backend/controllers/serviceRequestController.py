@@ -1,3 +1,4 @@
+from models.ServiceRemark import ServiceRemark
 from models.ServiceRequest import ServiceRequest, RequestStatus
 from models.Professional import Professional
 from sqlalchemy.orm import Session
@@ -75,7 +76,19 @@ def delete_service_request(session: Session, request_id: int):
 
 # Get closed service requests by professional id
 def get_closed_service_requests_by_professional_id(session: Session, professional_id: int):
-    return session.query(ServiceRequest).filter(ServiceRequest.professional_id == professional_id, ServiceRequest.status == RequestStatus.CLOSED).all()
+    # also return the remark and rating of the service request from the service_remarks table
+    closed_requests = session.query(ServiceRequest).filter(ServiceRequest.professional_id == professional_id, ServiceRequest.status == RequestStatus.CLOSED).all()
+    
+    for request in closed_requests:
+        remark = session.query(ServiceRemark).filter(ServiceRemark.service_request_id == request.id).first()
+        if remark:
+            request.user_remark = remark.user_remark
+            request.user_rating = remark.rating
+        else:
+            request.user_remark = 'No Remark'
+            request.user_rating = 'No Rating'
+    
+    return closed_requests
 
 # Get service request by service id 
 def get_service_requests_by_service_id(session: Session, service_id: int):
